@@ -1,0 +1,7 @@
+{
+  "buckets": [
+    {"name": "ndr-cold", "object_lock": false, "retention_mode": null, "retention_days": 0},
+    {"name": "ndr-audit", "object_lock": true, "retention_mode": "GOVERNANCE", "retention_days": 2190},
+    {"name": "ndr-iox", "object_lock": false, "retention_mode": null, "retention_days": 0}
+  ]
+}
