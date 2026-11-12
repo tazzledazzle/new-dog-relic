@@ -1,0 +1,39 @@
+# docker-compose.audit.yml
+#
+# Overlay compose file for the HIPAA audit router.
+# Usage: docker compose -f docker-compose.yml -f docker-compose.iox.yml -f docker-compose.audit.yml up -d
+#
+# This file adds a single service: audit-router
+# It depends on kafka and minio being healthy (defined in docker-compose.yml).
+# The audit-router consumes from ndr.audit (Kafka) and writes to ndr-audit (MinIO Object Lock bucket).
+#
+# Image pinned to 0.111.0 per PITFALLS.md Pitfall 9 (pin OTel Collector Contrib patch versions).
+
+services:
+  audit-router:
+    image: otel/opentelemetry-collector-contrib:0.111.0
+    container_name: ndr-audit-router
+    restart: unless-stopped
+    volumes:
+      - ./infra/audit/audit-router.yaml:/etc/otelcol-contrib/config.yaml:ro
+    environment:
+      - AWS_ACCESS_KEY_ID=${S3_ACCESS_KEY:-minioadmin}
+      - AWS_SECRET_ACCESS_KEY=${S3_SECRET_KEY:-minioadmin}
+      - AWS_DEFAULT_REGION=us-east-1
+    depends_on:
+      kafka:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    networks:
+      - ndr-local
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:13133/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+networks:
+  ndr-local:
+    external: true

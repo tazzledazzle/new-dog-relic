@@ -1,0 +1,50 @@
+# infra/audit/audit-router.yaml
+#
+# HIPAA Audit Router — OTel Collector Contrib configuration.
+#
+# ARCHITECTURAL REQUIREMENT (PITFALLS.md Pitfall 5 — HIPAA Audit Log Blast Radius):
+#   This router is the ONLY consumer of ndr.audit in group ndr-audit-cg.
+#   No observability pipeline may reuse this group_id or subscribe to this topic.
+#   This isolation is an architectural requirement, not a configuration preference.
+#   Any change to group_id here, or addition of ndr.audit to any other consumer,
+#   constitutes an architectural violation and must be reviewed as an ADR amendment.
+#
+# Data flow:
+#   Kafka topic ndr.audit  -->  [audit-router]  -->  S3 ndr-audit (Object Lock, GOVERNANCE)
+#
+# The ndr-audit bucket has Object Lock in GOVERNANCE mode with a 2190-day (6-year) default
+# retention period, satisfying HIPAA 45 CFR §164.312(b) audit log requirements.
+# Objects written here are WORM-protected: standard deletion is refused by the Object Lock.
+#
+# Consumer group: ndr-audit-cg (reserved in infra/kafka/README.md, Plan 01-01)
+
+receivers:
+  kafka/audit:
+    brokers: ["kafka:9092"]
+    topic: ndr.audit
+    group_id: ndr-audit-cg
+    encoding: raw
+    initial_offset: earliest
+
+exporters:
+  awss3/audit:
+    s3uploader:
+      region: us-east-1
+      s3_bucket: ndr-audit
+      s3_prefix: audit
+      s3_partition: minute
+      endpoint: http://minio:9000
+      s3_force_path_style: true
+      disable_ssl: true
+    marshaler: body
+
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
+
+service:
+  extensions: [health_check]
+  pipelines:
+    logs/audit:
+      receivers: [kafka/audit]
+      exporters: [awss3/audit]
