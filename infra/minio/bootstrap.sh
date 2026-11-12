@@ -29,7 +29,7 @@ fi
 # This avoids installing mc on the host and aligns with the CI/CD pattern.
 MC="docker run --rm --network ndr-local \
   -e MC_HOST_local=${S3_ENDPOINT} \
-  minio/mc:latest"
+  quay.io/minio/mc:latest"
 
 echo "==> MinIO bootstrap: configuring alias..."
 $MC alias set local "${S3_ENDPOINT}" "${S3_ACCESS_KEY}" "${S3_SECRET_KEY}" > /dev/null
