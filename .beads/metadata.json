@@ -1,0 +1,7 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "embedded",
+  "dolt_database": "new_dog_relic",
+  "project_id": "231ff7a3-a3fb-43d4-8be1-25fa11f73301"
+}
