@@ -1,0 +1,143 @@
+# NewDogRelic local-dev infrastructure substrate
+#
+# REPLICATION FACTOR NOTE:
+# All Kafka topics in this file use RF=1 (single-node KRaft, local-dev only).
+# Production targets RF=3 with min.insync.replicas=2.
+# This is a DOCUMENTED LOCAL-DEV DEVIATION — see infra/kafka/README.md.
+# Never deploy this compose file to staging or production.
+
+networks:
+  ndr-local:
+    driver: bridge
+
+volumes:
+  postgres-data:
+  minio-data:
+  kafka-data:
+
+services:
+
+  # ---------------------------------------------------------------------------
+  # Kafka (KRaft single-node, no ZooKeeper)
+  # ---------------------------------------------------------------------------
+  kafka:
+    image: bitnami/kafka:3.7
+    container_name: ndr-kafka
+    networks:
+      - ndr-local
+    ports:
+      - "9092:9092"
+    volumes:
+      - kafka-data:/bitnami/kafka
+    environment:
+      # KRaft mode — no ZooKeeper
+      KAFKA_CFG_NODE_ID: "1"
+      KAFKA_CFG_PROCESS_ROLES: "controller,broker"
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: "1@kafka:9093"
+      # Listeners: PLAINTEXT for external/inter-service, CONTROLLER for KRaft quorum
+      KAFKA_CFG_LISTENERS: "PLAINTEXT://:9092,CONTROLLER://:9093"
+      KAFKA_CFG_ADVERTISED_LISTENERS: "PLAINTEXT://kafka:9092"
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: "CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT"
+      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
+      # Disable auto-topic creation — only create-topics.sh creates topics (T-01-02)
+      KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE: "false"
+      # Default message size ceiling (1 MB) — documented per T-01-04
+      KAFKA_CFG_MESSAGE_MAX_BYTES: "1048576"
+    healthcheck:
+      test:
+        - "CMD-SHELL"
+        - "kafka-topics.sh --bootstrap-server localhost:9092 --list || exit 1"
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+
+  # ---------------------------------------------------------------------------
+  # Postgres (IOx catalog + application DB)
+  # ---------------------------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: ndr-postgres
+    networks:
+      - ndr-local
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: ndr
+      POSTGRES_PASSWORD: ndr
+      POSTGRES_DB: ndr_catalog
+    healthcheck:
+      test:
+        - "CMD-SHELL"
+        - "pg_isready -U ndr"
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  # ---------------------------------------------------------------------------
+  # MinIO (S3-compatible object store — cold tier + audit bucket)
+  # NOTE: minioadmin/minioadmin creds are LOCAL-DEV ONLY (T-01-01).
+  # Production uses External Secrets Operator + Vault (CLAUDE.md Layer 8).
+  # ---------------------------------------------------------------------------
+  minio:
+    image: minio/minio:latest
+    container_name: ndr-minio
+    networks:
+      - ndr-local
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio-data:/data
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address :9001
+    healthcheck:
+      test:
+        - "CMD-SHELL"
+        - "curl -f http://localhost:9000/minio/health/live || exit 1"
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+
+  # ---------------------------------------------------------------------------
+  # Redpanda Console (Kafka UI)
+  # ---------------------------------------------------------------------------
+  redpanda-console:
+    image: docker.redpanda.com/redpandadata/console:latest
+    container_name: ndr-redpanda-console
+    networks:
+      - ndr-local
+    ports:
+      - "8080:8080"
+    environment:
+      KAFKA_BROKERS: "kafka:9092"
+    depends_on:
+      kafka:
+        condition: service_healthy
+
+  # ---------------------------------------------------------------------------
+  # kafka-init (one-shot topic bootstrap)
+  # Mounts the idempotent create-topics.sh script and runs it once.
+  # Uses --if-not-exists so it is safe to re-run on docker compose up.
+  # depends_on kafka healthy ensures broker is ready before script starts.
+  # ---------------------------------------------------------------------------
+  kafka-init:
+    image: bitnami/kafka:3.7
+    container_name: ndr-kafka-init
+    networks:
+      - ndr-local
+    volumes:
+      - ./infra/kafka/create-topics.sh:/create-topics.sh:ro
+    command: bash /create-topics.sh
+    environment:
+      KAFKA_BOOTSTRAP: "kafka:9092"
+    depends_on:
+      kafka:
+        condition: service_healthy
+    restart: "no"
