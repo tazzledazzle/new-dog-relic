@@ -1,0 +1,12 @@
+{
+  "orgs": [
+    {
+      "org_id": "demo-org",
+      "databases": [
+        {"name": "demo-org.metrics", "retention_hours": 72},
+        {"name": "demo-org.logs", "retention_hours": 72},
+        {"name": "demo-org.traces", "retention_hours": 72}
+      ]
+    }
+  ]
+}

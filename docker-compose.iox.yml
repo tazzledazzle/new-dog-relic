@@ -1,0 +1,55 @@
+# InfluxDB 3 Core (IOx) overlay compose file.
+# Usage: docker compose -f docker-compose.yml -f docker-compose.iox.yml up -d
+#
+# This file is a Compose overlay — it must be used together with docker-compose.yml which
+# defines the base `ndr-local` network, MinIO service, and named volumes.
+#
+# IOx is deployed as a standalone HTTP binary on :8181.
+# Namespace (database) bootstrap is handled by infra/iox/bootstrap.sh.
+# Auth token is local-dev-only; production sourced from Vault via ESO (Phase 7).
+#
+# T-01-06: INFLUXDB3_AUTH_TOKEN is local-dev-token — NON-PRODUCTION.
+# T-01-07: namespaces.json pins retention_period_hours <= 72 for all databases.
+# T-01-10: Single admin token is acceptable for local dev; per-service scoped tokens in Phase 2+.
+
+services:
+  iox:
+    image: influxdb:3-core
+    # NOTE: influxdb:3-core tag is pinned to the 3-core stream for local dev.
+    # Replace with a pinned digest before any shared-environment deployment (Phase 7).
+    command: >
+      influxdb3 serve
+      --node-id=ndr-iox-local
+      --object-store=s3
+      --bucket=ndr-iox
+      --aws-access-key-id=${S3_ACCESS_KEY:-minioadmin}
+      --aws-secret-access-key=${S3_SECRET_KEY:-minioadmin}
+      --aws-endpoint=http://minio:9000
+      --aws-allow-http
+      --http-bind=0.0.0.0:8181
+    environment:
+      - INFLUXDB3_AUTH_TOKEN=${INFLUXDB3_AUTH_TOKEN:-local-dev-token}
+    ports:
+      - "8181:8181"
+    volumes:
+      - iox-data:/var/lib/influxdb3
+    networks:
+      - ndr-local
+    depends_on:
+      minio:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8181/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    restart: unless-stopped
+
+volumes:
+  iox-data:
+    driver: local
+
+networks:
+  ndr-local:
+    external: true
