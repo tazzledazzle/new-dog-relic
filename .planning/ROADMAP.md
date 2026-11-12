@@ -12,7 +12,7 @@ NewDogRelic is built infrastructure-first, write-path-second, read-path-third, a
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Infrastructure Substrate** - Kafka KRaft + IOx + Postgres + object store + HIPAA dual-stream — one-way-door decisions locked before any data flows
+- [x] **Phase 1: Infrastructure Substrate** - Kafka KRaft + IOx + Postgres + object store + HIPAA dual-stream — one-way-door decisions locked before any data flows (completed 2026-11-12)
 - [ ] **Phase 2: Ingest Pipeline (Metrics + Logs)** - Stateless ETL from OTLP → Kafka → IOx; cardinality enforcement; backpressure; PII scrubbing; tenant API keys
 - [ ] **Phase 3: Trace Pipeline + Tail Sampling** - Two-tier OTel Collector topology; Pebble-backed span buffer; head-based fallback; service-edge precomputation
 - [ ] **Phase 4: Query Layer + Full Auth/RBAC** - PromQL + SQL APIs; hot+cold DataFusion UnionExec; RBAC enforcement; SSO; HIPAA audit log wired through query path
@@ -113,7 +113,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Infrastructure Substrate | 2/3 | In Progress|  |
+| 1. Infrastructure Substrate | 3/3 | Complete   | 2026-11-12 |
 | 2. Ingest Pipeline (Metrics + Logs) | 0/TBD | Not started | - |
 | 3. Trace Pipeline + Tail Sampling | 0/TBD | Not started | - |
 | 4. Query Layer + Full Auth/RBAC | 0/TBD | Not started | - |
