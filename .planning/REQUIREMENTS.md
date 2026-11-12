@@ -89,16 +89,42 @@
 
 | REQ-ID | Phase | Status |
 |--------|-------|--------|
-| INGEST-01..05 | — | Unmapped |
-| STORE-01..04 | — | Unmapped |
-| TRACE-01..04 | — | Unmapped |
-| QUERY-01..04 | — | Unmapped |
-| AUTH-01..04 | — | Unmapped |
-| ALERT-01..04 | — | Unmapped |
-| UI-01..05 | — | Unmapped |
-| OPS-01..04 | — | Unmapped |
+| INGEST-01 | Phase 2 | Pending |
+| INGEST-02 | Phase 2 | Pending |
+| INGEST-03 | Phase 2 | Pending |
+| INGEST-04 | Phase 2 | Pending |
+| INGEST-05 | Phase 2 | Pending |
+| STORE-01 | Phase 1 | Pending |
+| STORE-02 | Phase 1 | Pending |
+| STORE-03 | Phase 1 | Pending |
+| STORE-04 | Phase 2 | Pending |
+| TRACE-01 | Phase 3 | Pending |
+| TRACE-02 | Phase 3 | Pending |
+| TRACE-03 | Phase 3 | Pending |
+| TRACE-04 | Phase 5 | Pending |
+| QUERY-01 | Phase 4 | Pending |
+| QUERY-02 | Phase 4 | Pending |
+| QUERY-03 | Phase 4 | Pending |
+| QUERY-04 | Phase 4 | Pending |
+| AUTH-01 | Phase 2 | Pending |
+| AUTH-02 | Phase 4 | Pending |
+| AUTH-03 | Phase 4 | Pending |
+| AUTH-04 | Phase 4 | Pending |
+| ALERT-01 | Phase 5 | Pending |
+| ALERT-02 | Phase 5 | Pending |
+| ALERT-03 | Phase 5 | Pending |
+| ALERT-04 | Phase 5 | Pending |
+| UI-01 | Phase 6 | Pending |
+| UI-02 | Phase 6 | Pending |
+| UI-03 | Phase 6 | Pending |
+| UI-04 | Phase 6 | Pending |
+| UI-05 | Phase 6 | Pending |
+| OPS-01 | Phase 7 | Pending |
+| OPS-02 | Phase 1 | Pending |
+| OPS-03 | Phase 7 | Pending |
+| OPS-04 | Phase 7 | Pending |
 
-*Traceability will be filled in by the roadmapper.*
+*Traceability mapped 2026-11-12. All 34 v1 requirements assigned to exactly one phase.*
 
 ---
 
