@@ -21,7 +21,7 @@ services:
   # Kafka (KRaft single-node, no ZooKeeper)
   # ---------------------------------------------------------------------------
   kafka:
-    image: bitnami/kafka:3.9
+    image: apache/kafka:latest
     container_name: ndr-kafka
     networks:
       - ndr-local
@@ -83,7 +83,7 @@ services:
   # Production uses External Secrets Operator + Vault (CLAUDE.md Layer 8).
   # ---------------------------------------------------------------------------
   minio:
-    image: bitnami/minio:latest
+    image: elestio/minio:latest
     container_name: ndr-minio
     networks:
       - ndr-local
@@ -108,7 +108,7 @@ services:
   # Redpanda Console (Kafka UI)
   # ---------------------------------------------------------------------------
   redpanda-console:
-    image: docker.redpanda.com/redpandadata/console:latest
+    image: redpandadata/console:latest
     container_name: ndr-redpanda-console
     networks:
       - ndr-local
@@ -127,7 +127,7 @@ services:
   # depends_on kafka healthy ensures broker is ready before script starts.
   # ---------------------------------------------------------------------------
   kafka-init:
-    image: bitnami/kafka:3.9
+    image: apache/kafka:latest
     container_name: ndr-kafka-init
     networks:
       - ndr-local
