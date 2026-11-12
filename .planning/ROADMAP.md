@@ -113,7 +113,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Infrastructure Substrate | 0/TBD | Not started | - |
+| 1. Infrastructure Substrate | 2/3 | In Progress|  |
 | 2. Ingest Pipeline (Metrics + Logs) | 0/TBD | Not started | - |
 | 3. Trace Pipeline + Tail Sampling | 0/TBD | Not started | - |
 | 4. Query Layer + Full Auth/RBAC | 0/TBD | Not started | - |
