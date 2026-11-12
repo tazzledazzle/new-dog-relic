@@ -51,5 +51,4 @@ volumes:
     driver: local
 
 networks:
-  ndr-local:
-    external: true
+  ndr-local: {}
